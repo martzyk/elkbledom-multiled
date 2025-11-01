@@ -456,8 +456,11 @@ class BLEDOMInstance:
             LOGGER.debug("%s: Connected; RSSI: %s", self.name, self.rssi)
             resolved = self._resolve_characteristics(client.services)
             if not resolved:
-                # Try to handle services failing to load
-                resolved = self._resolve_characteristics(await client.get_services())
+                    # if failed, try fallback (if your client supported)
+                try:
+                    resolved = self._resolve_characteristics(await client.get_cached_services())
+                except AttributeError:
+                    resolved = False
             self._cached_services = client.services if resolved else None
 
             self._client = client

@@ -23,46 +23,7 @@ import logging
 
 LOGGER = logging.getLogger(__name__)
 
-#handle: 0x0002, char properties: 0x12, char value handle: 0x0003, uuid: 00002a00-0000-1000-8000-00805f9b34fb
-#handle: 0x0005, char properties: 0x10, char value handle: 0x0006, uuid: 0000fff4-0000-1000-8000-00805f9b34fb
-#handle: 0x0008, char properties: 0x06, char value handle: 0x0009, uuid: 0000fff3-0000-1000-8000-00805f9b34fb
-#OTHER LED STRIP ??
-#handle: 0x0008, char properties: 0x06, char value handle: 0x0009, uuid: 0000fff0-0000-1000-8000-00805f9b34fb
 
-#gatttool -i hci0 -b be:59:7a:00:08:d5 --char-write-req -a 0x0009 -n 7e00040100000000ef POWERON
-#gatttool -i hci0 -b be:59:7a:00:08:d5 --char-write-req -a 0x0009 -n 7e0004000000ff00ef POWEROFF
-
-# sudo gatttool -b be:59:7a:00:08:d5 --char-write-req -a 0x0009 -n 7e0004f00001ff00ef # POWER ON
-# sudo gatttool -b be:59:7a:00:08:d5 --char-write-req -a 0x0009 -n 7e000503ff000000ef # RED
-# sudo gatttool -b be:59:7a:00:08:d5 --char-write-req -a 0x0009 -n 7e0005030000ff00ef # BLUE
-# sudo gatttool -b be:59:7a:00:08:d5 --char-write-req -a 0x0009 -n 7e00050300ff0000ef # GREEN
-# sudo gatttool -b be:59:7a:00:08:d5 --char-write-req -a 0x0009 -n 7e0004000000ff00ef # POWER OFF
-
-#https://github.com/TheSylex/ELK-BLEDOM-bluetooth-led-strip-controller/
-#https://github.com/FreekBes/bledom_controller/
-#https://github.com/sysofwan/ha-triones
-#https://github.com/FergusInLondon/ELK-BLEDOM/
-#https://linuxthings.co.uk/blog/control-an-elk-bledom-bluetooth-led-strip
-#https://github.com/arduino12/ble_rgb_led_strip_controller
-#https://github.com/lilgallon/DynamicLedStrips
-#https://github.com/kquinsland/JACKYLED-BLE-RGB-LED-Strip-controller
-
-
-# pi@homeassistant:~/magic $ gatttool -I
-# Attempting to connect to be:59:7a:00:08:d5
-# Connection successful
-# [be:59:7a:00:08:d5][LE]> char-read-uuid 0000fff3-0000-1000-8000-00805f9b34fb
-# handle: 0x0009   value: 7e 08 82 00 00 00 01 00 ef 2e 39 52 33 36 30 32
-# handle: 0x0009   value: 20 53 48 59 2d 56 38 2e 37 2e 39 52 33 36 30 32
-# handle: 0x0009   value: 50 33 30 56 33 32 5f 53 48 59 5f 52 31 34 35 33 - MELK
-
-# [be:59:7a:00:08:d5][LE]> char-read-uuid 0000fff4-0000-1000-8000-00805f9b34fb
-# handle: 0x0006   value: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-# [be:59:7a:00:08:d5][LE]> char-read-uuid 00002a00-0000-1000-8000-00805f9b34fb
-# handle: 0x0003   value: 45 4c 4b 2d 42 4c 45 44 4f 4d 20 20 20 -> NAME ELK-BLEDOM
-# [be:59:7a:00:08:d5][LE]>
-
-# CHANGES ARRAYS TO DICT OR MODELDB OBJECT WITH ALL MODEL INFORMATION
 NAME_ARRAY = ["ELK-BLEDDM",
               "ELK-BLE",
               "LEDBLE",
@@ -346,7 +307,7 @@ class BLEDOMInstance:
     @retry_bluetooth_connection_error
     async def set_color(self, rgb: Tuple[int, int, int]):
         r, g, b = rgb
-        await self._write([0x7e, 0x00, 0x05, 0x03, int(r), int(g), int(b), 0x00, 0xef])
+        await self._write([0x7e, 0x00, 0x05, 0x03, r, g, b, 0x00, 0xef])
         self._rgb_color = rgb
         self._reset_disconnect_timer()
 

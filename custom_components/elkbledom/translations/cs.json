@@ -1,0 +1,53 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "data": {
+                    "mac": "Bluetooth MAC adresa",
+                    "name": "Název"
+                },
+                "title": "Vyberte Elkbledom světlo. Světlo musí být připraveno k ověření."
+            },
+            "validate": {
+                "data": {
+                    "retry": "Zkusit ověřit znovu?",
+                    "flicker": "Bliklo světlo?"
+                },
+                "title": "Ověření Elkbledom zařízení"
+            },
+            "manual": {
+                "data": {
+                    "mac": "Bluetooth MAC adresa",
+                    "name": "Název"
+                },
+                "title": "Zadejte bluetooth MAC adresu"
+            }
+        },
+        "error": {
+            "connect": "Nelze se připojit k Elkbledom"
+        },
+        "abort": {
+            "cannot_validate": "Nelze ověřit Elkbledom světlo",
+            "cannot_connect": "Nelze se připojit k Elkbledom",
+            "not_supported": "Elkbledom světlo není podporováno",
+            "invalid_discovery_info": "Bluetooth zařízení má neplatné údaje"
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "data": {
+                    "reset": "Resetovat barvy při zapnutí LED",
+                    "delay": "Zpoždění odpojení v sekundách (0 = nikdy neodpojí)",
+                    "brightness_mode": "Režim řízení jasu"
+                }
+            }
+        },
+        "title": "Elkbledom-FastLink",
+        "select": {
+            "brightness_mode_auto": "Automaticky (doporučeno)",
+            "brightness_mode_hw": "Pouze hardware příkaz (BLE)",
+            "brightness_mode_rgb": "Pouze RGB fallback"
+        }
+    }
+}

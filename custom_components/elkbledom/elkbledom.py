@@ -226,6 +226,7 @@ class BLEDOMInstance:
         """Send command to device and read response."""
         await self._ensure_connected()
         await self._write_while_connected(data)
+        self._reset_disconnect_timer()
 
     async def _write_while_connected(self, data: bytearray):
         LOGGER.debug(''.join(format(x, ' 03x') for x in data))
@@ -284,8 +285,6 @@ class BLEDOMInstance:
         cold = 100 - value
         await self._write([0x7e, 0x00, 0x05, 0x02, warm, cold, 0x00, 0x00, 0xef])
         self._color_temp = warm
-        self._reset_disconnect_timer()
-
 
     @retry_bluetooth_connection_error
     async def set_color_temp_kelvin(self, value: int, brightness: int):
@@ -301,7 +300,6 @@ class BLEDOMInstance:
             brightness = self._brightness
         brightness_percent = int(brightness * 100 / 255) 
         await self._write([0x7e, 0x00, 0x05, 0x02, color_temp_percent, brightness_percent, 0x00, 0x00, 0xef])
-        self._reset_disconnect_timer()
 
 
     @retry_bluetooth_connection_error
@@ -309,7 +307,6 @@ class BLEDOMInstance:
         r, g, b = rgb
         await self._write([0x7e, 0x00, 0x05, 0x03, r, g, b, 0x00, 0xef])
         self._rgb_color = rgb
-        self._reset_disconnect_timer()
 
 
     @DeprecationWarning
@@ -317,29 +314,21 @@ class BLEDOMInstance:
     async def set_white(self, intensity: int):
         await self._write([0x7e, 0x00, 0x01, int(intensity*100/255), 0x00, 0x00, 0x00, 0x00, 0xef])
         self._brightness = intensity
-        self._reset_disconnect_timer()
-
 
     @retry_bluetooth_connection_error
     async def set_brightness(self, intensity: int):
         await self._write([0x7e, 0x04, 0x01, int(intensity*100/255), 0xff, 0x00, 0xff, 0x00, 0xef])
         self._brightness = intensity
-        self._reset_disconnect_timer()
-
 
     @retry_bluetooth_connection_error
     async def set_effect_speed(self, value: int):
         await self._write([0x7e, 0x00, 0x02, value, 0x00, 0x00, 0x00, 0x00, 0xef])
         self._effect_speed = value
-        self._reset_disconnect_timer()
-
 
     @retry_bluetooth_connection_error
     async def set_effect(self, value: int):
         await self._write([0x7e, 0x00, 0x03, value, 0x03, 0x00, 0x00, 0x00, 0xef])
         self._effect = value
-        self._reset_disconnect_timer()
-
 
     @retry_bluetooth_connection_error
     async def turn_on(self):
@@ -347,13 +336,11 @@ class BLEDOMInstance:
         #await self._ensure_connected()
         await self._write(self._turn_on_cmd)
         self._is_on = True
-        self._reset_disconnect_timer()
 
     @retry_bluetooth_connection_error
     async def turn_off(self):
         await self._write(self._turn_off_cmd)
         self._is_on = False
-        self._reset_disconnect_timer()
 
     @retry_bluetooth_connection_error
     async def set_scheduler_on(self, days: int, hours: int, minutes: int, enabled: bool):
@@ -362,8 +349,6 @@ class BLEDOMInstance:
         else:
             value = days
         await self._write([0x7e, 0x00, 0x82, hours, minutes, 0x00, 0x00, value, 0xef])
-        self._reset_disconnect_timer()
-
 
     @retry_bluetooth_connection_error
     async def set_scheduler_off(self, days: int, hours: int, minutes: int, enabled: bool):
@@ -372,21 +357,17 @@ class BLEDOMInstance:
         else:
             value = days
         await self._write([0x7e, 0x00, 0x82, hours, minutes, 0x00, 0x01, value, 0xef])
-        self._reset_disconnect_timer()
-
 
     @retry_bluetooth_connection_error
     async def sync_time(self):
         date=datetime.date.today()
         year, week_num, day_of_week = date.isocalendar()
         await self._write([0x7e, 0x00, 0x83, datetime.datetime.now().strftime('%H'), datetime.datetime.now().strftime('%M'), datetime.datetime.now().strftime('%S'), day_of_week, 0x00, 0xef])
-        self._reset_disconnect_timer()
 
 
     @retry_bluetooth_connection_error
     async def custom_time(self, hour: int, minute: int, second: int, day_of_week: int):
         await self._write([0x7e, 0x00, 0x83, hour, minute, second, day_of_week, 0x00, 0xef])
-        self._reset_disconnect_timer()
 
 
     @retry_bluetooth_connection_error
@@ -460,7 +441,7 @@ class BLEDOMInstance:
                 try:
                     resolved = self._resolve_characteristics(await client.get_cached_services())
                 except AttributeError:
-                    resolved = False
+                    resolved = False    
             self._cached_services = client.services if resolved else None
 
             self._client = client
@@ -473,6 +454,7 @@ class BLEDOMInstance:
                 if not self._device.name.lower().startswith("melk") and not self._device.name.lower().startswith("ledble"):
                     LOGGER.debug("%s: Subscribe to notifications; RSSI: %s", self.name, self.rssi)
                     await client.start_notify(self._read_uuid, self._notification_handler)
+                    
             except Exception as e:
                 LOGGER.error("Error during connection: %s", e)
 
@@ -551,7 +533,6 @@ class BLEDOMInstance:
     async def stop(self) -> None:
         """Stop the LEDBLE."""
         LOGGER.debug("%s: Stop", self.name)
-        self._reset_disconnect_timer()
 
     async def _execute_timed_disconnect(self) -> None:
         """Execute timed disconnection."""
@@ -560,7 +541,7 @@ class BLEDOMInstance:
             self.name,
             self._delay,
         )
-        self._reset_disconnect_timer()
+        
     async def _execute_disconnect(self) -> None:
         """Execute disconnection."""
         async with self._connect_lock:
